@@ -1,0 +1,69 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: apache-hpa
+  namespace: apache 
+
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    name: apache-deployment
+    apiVersion: apps/v1
+  
+  minReplicas: 1
+  maxReplicas: 5
+
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu 
+        target: 
+          type: Utilization 
+          averageUtilization: 30
+
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60    # Wait 60 seconds before scaling down (default: 300)
+      policies:
+      - type: Percent
+        value: 50                       # Scale down by 50% of current replicas
+        periodSeconds: 60               # Every 60 seconds
+      - type: Pods
+        value: 2                        # Or scale down by 2 pods max
+        periodSeconds: 60               # Every 60 seconds
+      selectPolicy: Max                 # Use the policy that removes more pods
+    
+    scaleUp:
+      stabilizationWindowSeconds: 0     # Scale up immediately when needed
+      policies:
+      - type: Percent
+        value: 100                      # Scale up by 100% (double)
+        periodSeconds: 15               # Every 15 seconds
+      - type: Pods
+        value: 2                        # Or add 2 pods max
+        periodSeconds: 15               # Every 15 seconds
+      selectPolicy: Max                 # Use the policy that adds more pods
+
+
+# apiVersion: autoscaling/v2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: apache-hpa
+#   namespace: apache
+
+# spec:
+#   scaleTargetRef:
+#     kind: Deployment
+#     name: apache-deployment
+#     apiVersion: apps/v1
+
+#   minReplicas: 1
+#   maxReplicas: 5
+
+#   metrics:
+#     - type: Resource
+#       resource:
+#         name: cpu
+#         target:
+#           type: Utilization
+#           averageUtilization: 30
